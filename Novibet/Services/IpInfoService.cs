@@ -1,88 +1,101 @@
-﻿using Microsoft.EntityFrameworkCore;
-using System.Net.Http;
+﻿using Novibet.Models; // Importa IpInfoResponse
+using Newtonsoft.Json;
+using StackExchange.Redis;
 
 public class IpInfoService
 {
     private readonly HttpClient _httpClient;
     private readonly IpInfoRepository _repository;
+    private readonly IConnectionMultiplexer _redis;
 
-    // Construtor: Recebe o repositório como dependência
-    public IpInfoService(IpInfoRepository repository, HttpClient httpClient)
+    public IpInfoService(IpInfoRepository repository, HttpClient httpClient, IConnectionMultiplexer redis)
     {
         _httpClient = httpClient;
         _repository = repository;
+        _redis = redis;
     }
 
-    // Método principal para buscar informações de um IP
-    public async Task<IPAddress?> GetIpInfoAsync(string ip)
+    public async Task<IpInfoResponse?> GetIpInfoAsync(string ip)
     {
-        // 1️ - Buscar no banco de dados
-        var ipData = await _repository.GetIpInfoFromDbAsync(ip);
-        if (ipData != null)
+        var cacheKey = $"ipinfo:{ip}";
+
+        // 1. Buscar no cache
+        var cachedData = await _redis.GetDatabase().StringGetAsync(cacheKey);
+        if (cachedData.HasValue)
         {
-            return ipData; // Retorna o dado do banco
+            return JsonConvert.DeserializeObject<IpInfoResponse>(cachedData);
         }
 
-        // 2 -  Caso não exista, chamar a API externa
+        // 2. Buscar no banco de dados
+        var dbData = await _repository.GetIpInfoFromDbAsync(ip);
+        if (dbData != null)
+        {
+            var resultFromDb = new IpInfoResponse
+            {
+                CountryName = dbData.Country.Name,
+                TwoLetterCode = dbData.Country.TwoLetterCode,
+                ThreeLetterCode = dbData.Country.ThreeLetterCode
+            };
+
+            // Salvar no cache para futuras consultas
+            await _redis.GetDatabase().StringSetAsync(cacheKey, JsonConvert.SerializeObject(resultFromDb));
+            return resultFromDb;
+        }
+
+        // 3. Buscar na API externa
         var externalData = await GetIpInfoFromExternalApiAsync(ip);
         if (externalData != null)
         {
-            // Buscar o CountryId no banco com base no código do país
-            var country = await _repository.GetCountryByCodeAsync(externalData.Country.TwoLetterCode);
+            // Buscar o CountryId no banco de dados para o país obtido da API
+            var country = await _repository.GetCountryByCodeAsync(externalData.TwoLetterCode);
             if (country == null)
             {
-                throw new Exception($"Country not found for code {externalData.Country.TwoLetterCode}");
+                throw new Exception($"Country not found for code {externalData.TwoLetterCode}");
             }
 
-            // Salvar no banco para uso futuro
+            // Salvar no banco de dados
             await _repository.SaveIpInfoAsync(new IPAddress
             {
-                CountryId = country.Id,
+                CountryId = country.Id, // O ID vem do banco
                 IP = ip,
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow
             });
 
-            // Retorna o dado obtido
-            return externalData;
+            // Criar o resultado final
+            var resultFromApi = new IpInfoResponse
+            {
+                CountryName = externalData.CountryName,
+                TwoLetterCode = externalData.TwoLetterCode,
+                ThreeLetterCode = externalData.ThreeLetterCode
+            };
+
+            // Salvar no cache
+            await _redis.GetDatabase().StringSetAsync(cacheKey, JsonConvert.SerializeObject(resultFromApi));
+            return resultFromApi;
         }
 
-        // Lançar exceção caso o IP não seja encontrado
-        throw new Exception("IP not found");
+        return null;
     }
 
-    // Chamada para API externa (pode ser ajustado para a integração real)
-    private async Task<IPAddress?> GetIpInfoFromExternalApiAsync(string ip)
-    {
-        //faz a requisição HTTP
-        var response = await _httpClient.GetStringAsync($"https://ip2c.org/{ip}");
 
-        // Verifica a resposta Exemplo de resposta: "1;US;USA;United States"
+    private async Task<IpInfoResponse?> GetIpInfoFromExternalApiAsync(string ip)
+    {
+        var response = await _httpClient.GetStringAsync($"https://ip2c.org/{ip}");
         if (!string.IsNullOrEmpty(response) && response.StartsWith("1;"))
         {
-            //divide os dados
             var parts = response.Split(';');
             if (parts.Length >= 4)
             {
-                return new IPAddress
+                return new IpInfoResponse
                 {
-                    IP = ip,
-                    Country = new Country
-                    {
-                        TwoLetterCode = parts[1],
-                        ThreeLetterCode = parts[2],
-                        Name = parts[3],
-                        CreatedAt = DateTime.UtcNow
-                    },
-                    CreatedAt = DateTime.UtcNow,
-                    UpdatedAt = DateTime.UtcNow
+                    CountryName = parts[3],
+                    TwoLetterCode = parts[1],
+                    ThreeLetterCode = parts[2]
                 };
             }
         }
 
-        return null; // IP não encontrado ou resposta inválida
+        return null;
     }
-
-    
-
 }

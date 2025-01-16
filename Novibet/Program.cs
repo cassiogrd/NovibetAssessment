@@ -27,6 +27,9 @@ builder.Services.AddSingleton<IConnectionMultiplexer>(sp =>
     return ConnectionMultiplexer.Connect(configurationOptions);
 });
 
+builder.Services.AddScoped<IpInfoRepository>();
+builder.Services.AddScoped<IpInfoService>();
+builder.Services.AddHttpClient<IpInfoService>();
 
 
 // Configuração do pipeline HTTP

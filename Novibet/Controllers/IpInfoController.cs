@@ -1,30 +1,35 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Novibet.Models; // Importa IpInfoResponse
+using StackExchange.Redis;
+using Newtonsoft.Json;
 
 [ApiController]
 [Route("api/ipinfo")]
 public class IpInfoController : ControllerBase
 {
-    private readonly IpInfoService _service;
+    private readonly IpInfoService _ipInfoService;
 
-    public IpInfoController(IpInfoService service)
+    public IpInfoController(IpInfoService ipInfoService)
     {
-        _service = service;
+        _ipInfoService = ipInfoService;
     }
 
-    //[HttpGet("{ip}")]
-
-    [HttpGet("{ip}")] // inica qu a rota espera um parametro na url chamado ip
-    // Por exemplo, o endpoint: https://localhost:7134/api/ipinfo/231 (onde 231 seria o ip)
+    [HttpGet("{ip}")]
     public async Task<IActionResult> GetIpInfo(string ip)
     {
         try
         {
-            var result = await _service.GetIpInfoAsync(ip);
-            return Ok(result);
+            var ipInfo = await _ipInfoService.GetIpInfoAsync(ip);
+            if (ipInfo != null)
+            {
+                return Ok(ipInfo);
+            }
+
+            return NotFound("IP information not found.");
         }
         catch (Exception ex)
         {
-            return NotFound(new { Error = ex.Message });
+            return StatusCode(500, $"Erro: {ex.Message}");
         }
     }
 }
