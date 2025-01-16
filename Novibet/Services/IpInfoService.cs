@@ -37,7 +37,7 @@ public class IpInfoService
             // Salvar no banco para uso futuro
             await _repository.SaveIpInfoAsync(new IPAddress
             {
-                CountryId = externalData.CountryId,
+                CountryId = country.Id,
                 IP = ip,
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow
@@ -51,7 +51,7 @@ public class IpInfoService
         throw new Exception("IP not found");
     }
 
-    // Simular chamada para API externa (pode ser ajustado para a integração real)
+    // Chamada para API externa (pode ser ajustado para a integração real)
     private async Task<IPAddress?> GetIpInfoFromExternalApiAsync(string ip)
     {
         //faz a requisição HTTP
