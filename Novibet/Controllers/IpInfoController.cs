@@ -17,19 +17,45 @@ public class IpInfoController : ControllerBase
     [HttpGet("{ip}")]
     public async Task<IActionResult> GetIpInfo(string ip)
     {
+        if (!IsValidIPv4(ip))
+        {
+            return BadRequest(new
+            {
+                Status = 400,
+                Message = "O valor fornecido não é um IPv4 válido.",
+                Timestamp = DateTime.UtcNow
+            });
+        }
+
         try
         {
             var ipInfo = await _ipInfoService.GetIpInfoAsync(ip);
-            if (ipInfo != null)
-            {
-                return Ok(ipInfo);
-            }
-
-            return NotFound("IP information not found.");
+            return Ok(ipInfo);
         }
         catch (Exception ex)
         {
             return StatusCode(500, $"Erro: {ex.Message}");
         }
     }
+
+    // Validação manual de IPv4
+    private bool IsValidIPv4(string ip)
+    {
+        if (string.IsNullOrWhiteSpace(ip))
+            return false;
+
+        var parts = ip.Split('.');
+        if (parts.Length != 4)
+            return false;
+
+        foreach (var part in parts)
+        {
+            if (!int.TryParse(part, out var num) || num < 0 || num > 255)
+                return false;
+        }
+
+        return true;
+    }
+
+
 }

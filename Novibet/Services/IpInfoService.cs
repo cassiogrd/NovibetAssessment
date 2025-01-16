@@ -17,9 +17,10 @@ public class IpInfoService
 
     public async Task<IpInfoResponse?> GetIpInfoAsync(string ip)
     {
-        var cacheKey = $"ipinfo:{ip}";
+
 
         // 1. Buscar no cache
+        var cacheKey = $"ipinfo:{ip}";
         var cachedData = await _redis.GetDatabase().StringGetAsync(cacheKey);
         if (cachedData.HasValue)
         {
