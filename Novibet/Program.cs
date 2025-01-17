@@ -1,7 +1,17 @@
 using Microsoft.EntityFrameworkCore;
 using StackExchange.Redis;
+using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Configurar Serilog para logs no console
+Log.Logger = new LoggerConfiguration()
+    .MinimumLevel.Information() // Define o nível mínimo de log
+    .WriteTo.Console(outputTemplate: "[{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj}{NewLine}{Exception}")
+    .CreateLogger();
+
+// Substituir o Logger padrão
+builder.Host.UseSerilog();
 
 // Adicionar serviços ao container
 builder.Services.AddControllers();
@@ -31,7 +41,6 @@ builder.Services.AddScoped<IpInfoRepository>();
 builder.Services.AddScoped<IpInfoService>();
 builder.Services.AddHttpClient<IpInfoService>();
 
-
 // Configuração do pipeline HTTP
 var app = builder.Build();
 
@@ -45,4 +54,18 @@ app.UseHttpsRedirection();
 app.UseAuthorization();
 app.MapControllers();
 
-app.Run();
+// Configuração de logs ao iniciar e ao finalizar a aplicação
+try
+{
+    Log.Information("Aplicação iniciando...");
+    app.Run();
+}
+catch (Exception ex)
+{
+    Log.Fatal(ex, "A aplicação encontrou um erro fatal e será encerrada.");
+}
+finally
+{
+    Log.Information("Aplicação finalizada.");
+    Log.CloseAndFlush();
+}

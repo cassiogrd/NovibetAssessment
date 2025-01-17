@@ -2,6 +2,7 @@
 using Novibet.Models; // Importa IpInfoResponse
 using StackExchange.Redis;
 using Newtonsoft.Json;
+using Serilog;
 
 [ApiController]
 [Route("api/ipinfo")]
@@ -17,8 +18,12 @@ public class IpInfoController : ControllerBase
     [HttpGet("{ip}")]
     public async Task<IActionResult> GetIpInfo(string ip)
     {
+        Log.Information("Requisição recebida para consultar IP: {Ip}", ip);
+
         if (!IsValidIPv4(ip))
         {
+            Log.Warning("IP inválido fornecido: {Ip}", ip);
+
             return BadRequest(new
             {
                 Status = 400,
@@ -29,14 +34,18 @@ public class IpInfoController : ControllerBase
 
         try
         {
+            Log.Information("Consultando informações para o IP: {Ip}", ip);
             var ipInfo = await _ipInfoService.GetIpInfoAsync(ip);
+            Log.Information("Resposta enviada para o IP {Ip}: {@IpInfo}", ip, ipInfo);
             return Ok(ipInfo);
         }
         catch (Exception ex)
         {
+            Log.Error(ex, "Erro ao consultar informações para o IP: {Ip}", ip);
             return StatusCode(500, $"Erro: {ex.Message}");
         }
     }
+
 
     // Validação manual de IPv4
     private bool IsValidIPv4(string ip)
