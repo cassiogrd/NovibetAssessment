@@ -1,16 +1,16 @@
 using Microsoft.EntityFrameworkCore;
 using StackExchange.Redis;
 using Serilog;
+using Quartz;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Configurar Serilog para logs no console
 Log.Logger = new LoggerConfiguration()
-    .MinimumLevel.Information() // Define o nível mínimo de log
+    .MinimumLevel.Information()
     .WriteTo.Console(outputTemplate: "[{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj}{NewLine}{Exception}")
     .CreateLogger();
 
-// Substituir o Logger padrão
 builder.Host.UseSerilog();
 
 // Adicionar serviços ao container
@@ -40,6 +40,22 @@ builder.Services.AddSingleton<IConnectionMultiplexer>(sp =>
 builder.Services.AddScoped<IpInfoRepository>();
 builder.Services.AddScoped<IpInfoService>();
 builder.Services.AddHttpClient<IpInfoService>();
+//builder.Services.AddSingleton<IpUpdateJob>();
+
+// Configuração do Quartz
+builder.Services.AddQuartz(q =>
+{
+    q.UseMicrosoftDependencyInjectionJobFactory();
+    var jobKey = new JobKey("IpUpdateJob");
+    q.AddJob<IpUpdateJob>(opts => opts.WithIdentity(jobKey).DisallowConcurrentExecution());
+    q.AddTrigger(opts => opts
+        .ForJob(jobKey)
+        .WithIdentity("IpUpdateJob-Trigger")
+        .WithCronSchedule("0 * * * * ?")); // Executa a cada minuto
+});
+
+builder.Services.AddScoped<IpUpdateJob>(); // Altere aqui para Scoped
+builder.Services.AddQuartzHostedService();
 
 // Configuração do pipeline HTTP
 var app = builder.Build();

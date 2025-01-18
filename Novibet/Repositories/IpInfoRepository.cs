@@ -73,4 +73,22 @@ public class IpInfoRepository
             throw;
         }
     }
+
+    // Buscar IP em Batchs
+    public async Task<List<IPAddress>> GetIpsBatchAsync(int batchSize, int offset)
+    {
+        return await _context.IPAddresses
+            .Include(i => i.Country)
+            .OrderBy(i => i.Id)
+            .Skip(offset)
+            .Take(batchSize)
+            .ToListAsync();
+    }
+
+    // Atualizar
+    public async Task UpdateIpInfoAsync(IPAddress ipAddress)
+    {
+        _context.IPAddresses.Update(ipAddress);
+        await _context.SaveChangesAsync();
+    }
 }
