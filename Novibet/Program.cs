@@ -40,7 +40,9 @@ builder.Services.AddSingleton<IConnectionMultiplexer>(sp =>
 builder.Services.AddScoped<IpInfoRepository>();
 builder.Services.AddScoped<IpInfoService>();
 builder.Services.AddHttpClient<IpInfoService>();
-//builder.Services.AddSingleton<IpUpdateJob>();
+builder.Services.AddScoped<ReportRepository>();
+builder.Services.AddSingleton(new AdoConnectionService(connectionString));
+
 
 // Configuração do Quartz
 builder.Services.AddQuartz(q =>
