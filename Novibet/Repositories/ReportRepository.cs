@@ -12,6 +12,7 @@ public class ReportRepository
 
     public async Task<IEnumerable<CountryReport>> GetCountryReportAsync(string? twoLetterCodes)
     {
+        // ADO
         using var connection = _adoConnectionService.CreateConnection();
         await connection.OpenAsync();
 
@@ -32,6 +33,7 @@ public class ReportRepository
                 c.Name;
         ";
 
+        // executa a consulta sql e mapeia para objeto
         return await connection.QueryAsync<CountryReport>(sql, new { TwoLetterCodes = twoLetterCodes });
     }
 }
