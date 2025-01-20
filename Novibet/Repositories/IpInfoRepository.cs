@@ -1,7 +1,8 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Serilog;
+using Novibet.Interfaces;
 
-public class IpInfoRepository
+public class IpInfoRepository : IIpInfoRepository
 {
     private readonly AppDbContext _context;
 
@@ -9,7 +10,6 @@ public class IpInfoRepository
     {
         _context = context;
     }
-
     // Buscar informações de um IP no banco
     public async Task<IPAddress?> GetIpInfoFromDbAsync(string ip)
     {
@@ -33,7 +33,6 @@ public class IpInfoRepository
             throw;
         }
     }
-
     // Salvar informações de IP no banco
     public async Task SaveIpInfoAsync(IPAddress ipAddress)
     {
@@ -50,7 +49,6 @@ public class IpInfoRepository
             throw;
         }
     }
-
     // Buscar qual o country id no BD
     public async Task<Country?> GetCountryByCodeAsync(string twoLetterCode)
     {
@@ -84,7 +82,6 @@ public class IpInfoRepository
             .Take(batchSize)
             .ToListAsync();
     }
-
     // Atualizar
     public async Task UpdateIpInfoAsync(IPAddress ipAddress)
     {

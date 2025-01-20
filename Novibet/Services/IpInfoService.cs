@@ -2,14 +2,15 @@
 using Newtonsoft.Json;
 using StackExchange.Redis;
 using Serilog;
+using Novibet.Interfaces;
 
 public class IpInfoService
 {
     private readonly HttpClient _httpClient;
-    private readonly IpInfoRepository _repository;
+    private readonly IIpInfoRepository _repository;
     private readonly IConnectionMultiplexer _redis;
 
-    public IpInfoService(IpInfoRepository repository, HttpClient httpClient, IConnectionMultiplexer redis)
+    public IpInfoService(IIpInfoRepository repository, HttpClient httpClient, IConnectionMultiplexer redis)
     {
         _httpClient = httpClient;
         _repository = repository;

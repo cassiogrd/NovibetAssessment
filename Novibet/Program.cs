@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using StackExchange.Redis;
 using Serilog;
 using Quartz;
+using Novibet.Interfaces;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -42,6 +43,13 @@ builder.Services.AddScoped<IpInfoService>();
 builder.Services.AddHttpClient<IpInfoService>();
 builder.Services.AddScoped<ReportRepository>();
 builder.Services.AddSingleton(new AdoConnectionService(connectionString));
+builder.Services.AddScoped<IIpInfoRepository, IpInfoRepository>();
+builder.Services.AddScoped<IReportRepository, ReportRepository>();
+
+//builder.Services.AddScoped<IIpInfoService, IpInfoService>();
+//builder.Services.AddScoped<IReportService, ReportService>();
+
+
 
 
 // Configuração do Quartz

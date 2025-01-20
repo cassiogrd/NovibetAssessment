@@ -1,12 +1,14 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Serilog;
+using Novibet.Interfaces;
 
 [ApiController]
 [Route("api/reports")]
 public class ReportController : ControllerBase
 {
-    private readonly ReportRepository _reportRepository;
+    private readonly IReportRepository _reportRepository;
 
-    public ReportController(ReportRepository reportRepository)
+    public ReportController(IReportRepository reportRepository)
     {
         _reportRepository = reportRepository;
     }

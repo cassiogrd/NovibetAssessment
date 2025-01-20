@@ -1,7 +1,9 @@
 ﻿using Dapper;
 using Microsoft.Data.SqlClient;
+using Microsoft.EntityFrameworkCore;
+using Novibet.Interfaces;
 
-public class ReportRepository
+public class ReportRepository : IReportRepository
 {
     private readonly AdoConnectionService _adoConnectionService;
 
@@ -15,7 +17,6 @@ public class ReportRepository
         // ADO
         using var connection = _adoConnectionService.CreateConnection();
         await connection.OpenAsync();
-
         string sql = @"
             SELECT 
                 c.Name AS CountryName,
@@ -32,7 +33,6 @@ public class ReportRepository
             ORDER BY 
                 c.Name;
         ";
-
         // executa a consulta sql e mapeia para objeto
         return await connection.QueryAsync<CountryReport>(sql, new { TwoLetterCodes = twoLetterCodes });
     }
