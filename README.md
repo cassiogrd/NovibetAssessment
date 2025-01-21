@@ -1,7 +1,7 @@
-📋 Description
+## 📋 Description
 The Novibet project is a web application that provides functionalities for managing IP information and generating country-based reports. The system integrates with Redis for caching, performs database queries using Entity Framework and Dapper, and makes external API calls to enrich data.
 
-🚀 Features
+## 🚀 Features
 IP Information Lookup:
   Search in cache (Redis).
   Query the database.
@@ -17,7 +17,7 @@ Unknown Country Handling:
   Ensures data integrity by mapping unknown countries appropriately.
 
 
-🛠️ Technologies Used
+## 🛠️ Technologies Used
 .NET 8: Main backend framework.
 Entity Framework: ORM for database management.
 Dapper: Lightweight SQL querying for reports.
