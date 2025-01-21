@@ -3,6 +3,7 @@ using StackExchange.Redis;
 using Serilog;
 using Quartz;
 using Novibet.Interfaces;
+using Novibet.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -55,14 +56,14 @@ builder.Services.AddScoped<IReportRepository, ReportRepository>();
 // Configuração do Quartz
 builder.Services.AddQuartz(q =>
 {
-    q.UseMicrosoftDependencyInjectionJobFactory();
     var jobKey = new JobKey("IpUpdateJob");
     q.AddJob<IpUpdateJob>(opts => opts.WithIdentity(jobKey).DisallowConcurrentExecution());
     q.AddTrigger(opts => opts
         .ForJob(jobKey)
         .WithIdentity("IpUpdateJob-Trigger")
-        .WithCronSchedule("0 * * * * ?")); // Executa a cada minuto
+        .WithCronSchedule("0 0 * * * ?")); // Executa a cada 1 hora
 });
+
 
 builder.Services.AddScoped<IpUpdateJob>(); // Altere aqui para Scoped
 builder.Services.AddQuartzHostedService();

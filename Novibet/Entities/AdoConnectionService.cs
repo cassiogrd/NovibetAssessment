@@ -6,6 +6,9 @@ public class AdoConnectionService
 
     public AdoConnectionService(string connectionString)
     {
+        if (string.IsNullOrWhiteSpace(connectionString))
+            throw new ArgumentNullException(nameof(connectionString));
+
         _connectionString = connectionString;
     }
 

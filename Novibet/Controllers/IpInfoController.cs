@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Novibet.Models; // Importa IpInfoResponse
+using Novibet.Services;
 using StackExchange.Redis;
 using Newtonsoft.Json;
 using Serilog;
