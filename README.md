@@ -34,6 +34,7 @@ The Novibet project is a web application that provides functionalities for manag
 ├── Jobs                # Automated tasks (Quartz)
 ├── Tests               # Unit tests using xUnit
 └── Program.cs          # Application startup configuration
+```
 
 ## 🔄 Program Workflow
 
