@@ -28,7 +28,7 @@ MoQ: Mocking dependencies for testing.
 FluentAssertions: Fluent validation for tests.
 
 
-🗂️ Project Structure
+## 🗂️ **Project Structure**
 /Novibet
 ├── Controllers         # Application controllers (API)
 ├── Interfaces          # Contract definitions (interfaces)
